@@ -2559,6 +2559,11 @@ pub mod keys {
     pub const OPTION_ENABLE_FLUTTER_HTTP_ON_RUST: &str = "enable-flutter-http-on-rust";
     pub const OPTION_ALLOW_ASK_FOR_NOTE: &str = "allow-ask-for-note";
 
+    //修复隐藏CM功能：
+    pub const OPTION_ALLOW_HIDE_CM: &str = "allow-hide-cm";
+    //修复托盘图标功能：
+    pub const OPTION_HIDE_TRAY: &str = "hide-tray";
+
     // built-in options
     pub const OPTION_DISPLAY_NAME: &str = "display-name";
     pub const OPTION_PRESET_DEVICE_GROUP_NAME: &str = "preset-device-group-name";
@@ -2578,7 +2583,7 @@ pub mod keys {
     pub const OPTION_HIDE_USERNAME_ON_CARD: &str = "hide-username-on-card";
     pub const OPTION_HIDE_HELP_CARDS: &str = "hide-help-cards";
     pub const OPTION_DEFAULT_CONNECT_PASSWORD: &str = "default-connect-password";
-    pub const OPTION_HIDE_TRAY: &str = "hide-tray";
+
     pub const OPTION_ONE_WAY_CLIPBOARD_REDIRECTION: &str = "one-way-clipboard-redirection";
     pub const OPTION_ALLOW_LOGON_SCREEN_PASSWORD: &str = "allow-logon-screen-password";
     pub const OPTION_ONE_WAY_FILE_TRANSFER: &str = "one-way-file-transfer";
@@ -2746,6 +2751,8 @@ pub mod keys {
         OPTION_ENABLE_ANDROID_SOFTWARE_ENCODING_HALF_SCALE,
         OPTION_ENABLE_TRUSTED_DEVICES,
         OPTION_RELAY_SERVER,
+        OPTION_ALLOW_HIDE_CM,
+        OPTION_HIDE_TRAY,
         OPTION_DISABLE_UDP,
         OPTION_ALLOW_INSECURE_TLS_FALLBACK,
     ];
