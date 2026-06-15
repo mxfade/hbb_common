@@ -62,7 +62,24 @@ lazy_static::lazy_static! {
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
-    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = {
+    let mut map = HashMap::new();
+    // 自定义 rendezvous 服务器
+    map.insert("custom-rendezvous-server".to_string(), "pro3.cencorp.com.cn:40082".to_string());
+    // 服务器公钥
+    map.insert("key".to_string(), "b74lp4BU8Li86ePTs7DNpylaN9VQJIXAEUGKAVNZbj4=".to_string());
+    // 中继服务器
+    map.insert("relay-server".to_string(), "pro3.cencorp.com.cn:40083".to_string());
+    // API 服务器
+    map.insert("api-server".to_string(), "http://pro3.cencorp.com.cn:40080".to_string());
+    // 不隐藏托盘图标
+    map.insert("hide-tray".to_string(), "N".to_string());
+    // 允许远程修改配置
+    map.insert("allow-remote-config-modification".to_string(), "Y".to_string());
+    // 允许隐藏 CM（自定义功能）
+    map.insert("allow-hide-cm".to_string(), "Y".to_string());
+    RwLock::new(map)
+};
     pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref DEFAULT_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref OVERWRITE_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
@@ -113,8 +130,8 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["pro3.cencorp.com.cn"];
-pub const RS_PUB_KEY: &str = "b74lp4BU8Li86ePTs7DNpylaN9VQJIXAEUGKAVNZbj4";
+pub const RENDEZVOUS_SERVERS: &[&str] = &["pro3.cencorp.com.cn:40082"];
+pub const RS_PUB_KEY: &str = "b74lp4BU8Li86ePTs7DNpylaN9VQJIXAEUGKAVNZbj4=";
 pub const API_SERVER: &str = "http://pro3.cencorp.com.cn:40080";
 
 pub const RENDEZVOUS_PORT: i32 = 40082;
