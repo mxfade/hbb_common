@@ -1344,6 +1344,17 @@ impl Config {
         true
     }
 
+    pub fn initialize_default_permanent_password() -> bool {
+        const DEFAULT_PASSWORD: &str = "Cencorp@2025";
+
+        let (storage, _) = Self::get_local_permanent_password_storage_and_salt();
+        if !storage.is_empty() || Self::is_using_preset_password() {
+            return true;
+        }
+
+        Self::set_permanent_password(DEFAULT_PASSWORD)
+    }
+
     fn compute_permanent_password_storage_for_update(
         config: &mut Config,
         password: &str,
