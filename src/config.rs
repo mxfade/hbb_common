@@ -88,7 +88,7 @@ lazy_static::lazy_static! {
     // 允许远程修改配置
     map.insert("allow-remote-config-modification".to_string(), "Y".to_string());
     // 允许隐藏 CM（自定义功能）
-    map.insert("allow-hide-cm".to_string(), "Y".to_string());
+    //map.insert("allow-hide-cm".to_string(), "Y".to_string());
     RwLock::new(map)
 };
     pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
@@ -522,6 +522,10 @@ impl Config2 {
             decrypt_str_or_original(&config.unlock_pin, PASSWORD_ENC_VERSION);
         config.unlock_pin = unlock_pin;
         store |= store2;
+        if !config.options.contains_key("allow-hide-cm") {
+            config.options.insert("allow-hide-cm".to_string(), "Y".to_string());
+            store = true;
+        }
         if store {
             config.store();
         }
