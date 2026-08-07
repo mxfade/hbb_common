@@ -23,7 +23,8 @@ mod permanent_password;
 
 pub use permanent_password::{
     compute_permanent_password_h1, decode_permanent_password_h1_from_storage,
-    decode_preset_password_h1_from_storage, local_permanent_password_storage_is_usable_for_auth,
+    decode_preset_password_h1_from_storage, generate_permanent_password_storage,
+    local_permanent_password_storage_is_usable_for_auth,
     preset_permanent_password_storage_is_usable_for_auth, ENCRYPT_MAX_LEN,
 };
 use permanent_password::{
@@ -1342,17 +1343,6 @@ impl Config {
         config.store();
         Self::clear_trusted_devices();
         true
-    }
-
-    pub fn initialize_default_permanent_password() -> bool {
-        const DEFAULT_PASSWORD: &str = "Cencorp@2025";
-
-        let (storage, _) = Self::get_local_permanent_password_storage_and_salt();
-        if !storage.is_empty() || Self::is_using_preset_password() {
-            return true;
-        }
-
-        Self::set_permanent_password(DEFAULT_PASSWORD)
     }
 
     fn compute_permanent_password_storage_for_update(

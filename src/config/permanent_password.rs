@@ -33,6 +33,11 @@ pub fn compute_permanent_password_h1(
     h1
 }
 
+pub fn generate_permanent_password_storage(password: &str, salt: &str) -> Option<String> {
+    let h1 = compute_permanent_password_h1(password, salt);
+    encode_permanent_password_encrypted_storage_from_h1(&h1)
+}
+
 pub(super) fn constant_time_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
     sodiumoxide::utils::memcmp(a, b)
 }
@@ -258,6 +263,13 @@ mod tests {
         assert!(!local_permanent_password_storage_matches_plain(
             &storage, salt, "wrong"
         ));
+    }
+
+    #[test]
+    fn test_generate_permanent_password_storage_roundtrip() {
+        let storage = generate_permanent_password_storage("p@ssw0rd", "salt123").unwrap();
+        assert!(storage.starts_with(PERMANENT_PASSWORD_ENC_VERSION));
+        assert!(decode_permanent_password_h1_from_storage(&storage).is_some());
     }
 
     #[test]
