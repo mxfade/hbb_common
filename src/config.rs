@@ -23,7 +23,8 @@ mod permanent_password;
 
 pub use permanent_password::{
     compute_permanent_password_h1, decode_permanent_password_h1_from_storage,
-    decode_preset_password_h1_from_storage, local_permanent_password_storage_is_usable_for_auth,
+    decode_preset_password_h1_from_storage, generate_permanent_password_storage,
+    local_permanent_password_storage_is_usable_for_auth,
     preset_permanent_password_storage_is_usable_for_auth, ENCRYPT_MAX_LEN,
 };
 use permanent_password::{
@@ -73,7 +74,24 @@ lazy_static::lazy_static! {
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
-    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = {
+    let mut map = HashMap::new();
+    // 自定义 rendezvous 服务器
+    map.insert("custom-rendezvous-server".to_string(), "pro3.cencorp.com.cn:40082".to_string());
+    // 服务器公钥
+    map.insert("key".to_string(), "b74lp4BU8Li86ePTs7DNpylaN9VQJIXAEUGKAVNZbj4=".to_string());
+    // 中继服务器
+    map.insert("relay-server".to_string(), "pro3.cencorp.com.cn:40083".to_string());
+    // API 服务器
+    map.insert("api-server".to_string(), "http://pro3.cencorp.com.cn:40080".to_string());
+    // 不隐藏托盘图标
+    map.insert("hide-tray".to_string(), "N".to_string());
+    // 允许远程修改配置
+    map.insert("allow-remote-config-modification".to_string(), "Y".to_string());
+    // 允许隐藏 CM（自定义功能）
+    //map.insert("allow-hide-cm".to_string(), "Y".to_string());
+    RwLock::new(map)
+};
     pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref DEFAULT_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref OVERWRITE_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
@@ -117,13 +135,14 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+pub const RENDEZVOUS_SERVERS: &[&str] = &["pro3.cencorp.com.cn:40082"];
+pub const RS_PUB_KEY: &str = "b74lp4BU8Li86ePTs7DNpylaN9VQJIXAEUGKAVNZbj4=";
+pub const API_SERVER: &str = "http://pro3.cencorp.com.cn:40080";
 
-pub const RENDEZVOUS_PORT: i32 = 21116;
-pub const RELAY_PORT: i32 = 21117;
-pub const WS_RENDEZVOUS_PORT: i32 = 21118;
-pub const WS_RELAY_PORT: i32 = 21119;
+pub const RENDEZVOUS_PORT: i32 = 40082;
+pub const RELAY_PORT: i32 = 40083;
+pub const WS_RENDEZVOUS_PORT: i32 = 40084;
+pub const WS_RELAY_PORT: i32 = 40085;
 
 #[inline]
 pub fn is_service_ipc_postfix(postfix: &str) -> bool {
@@ -504,6 +523,10 @@ impl Config2 {
             decrypt_str_or_original(&config.unlock_pin, PASSWORD_ENC_VERSION);
         config.unlock_pin = unlock_pin;
         store |= store2;
+        if !config.options.contains_key("allow-hide-cm") {
+            config.options.insert("allow-hide-cm".to_string(), "Y".to_string());
+            store = true;
+        }
         if store {
             config.store();
         }
@@ -2976,6 +2999,11 @@ pub mod keys {
     pub const OPTION_ENABLE_FLUTTER_HTTP_ON_RUST: &str = "enable-flutter-http-on-rust";
     pub const OPTION_ALLOW_ASK_FOR_NOTE: &str = "allow-ask-for-note";
 
+    //修复隐藏CM功能：
+    pub const OPTION_ALLOW_HIDE_CM: &str = "allow-hide-cm";
+    //修复托盘图标功能：
+    pub const OPTION_HIDE_TRAY: &str = "hide-tray";
+
     // built-in options
     pub const OPTION_DISPLAY_NAME: &str = "display-name";
     pub const OPTION_AVATAR: &str = "avatar";
@@ -2999,7 +3027,7 @@ pub mod keys {
     pub const OPTION_HIDE_USERNAME_ON_CARD: &str = "hide-username-on-card";
     pub const OPTION_HIDE_HELP_CARDS: &str = "hide-help-cards";
     pub const OPTION_DEFAULT_CONNECT_PASSWORD: &str = "default-connect-password";
-    pub const OPTION_HIDE_TRAY: &str = "hide-tray";
+
     pub const OPTION_ONE_WAY_CLIPBOARD_REDIRECTION: &str = "one-way-clipboard-redirection";
     pub const OPTION_ALLOW_LOGON_SCREEN_PASSWORD: &str = "allow-logon-screen-password";
     pub const OPTION_ALLOW_DEEP_LINK_PASSWORD: &str = "allow-deep-link-password";
@@ -3189,6 +3217,8 @@ pub mod keys {
         OPTION_ENABLE_ANDROID_SOFTWARE_ENCODING_HALF_SCALE,
         OPTION_ENABLE_TRUSTED_DEVICES,
         OPTION_RELAY_SERVER,
+        OPTION_ALLOW_HIDE_CM,
+        OPTION_HIDE_TRAY,
         OPTION_ICE_SERVERS,
         OPTION_DISABLE_UDP,
         OPTION_ALLOW_INSECURE_TLS_FALLBACK,
@@ -3214,7 +3244,6 @@ pub mod keys {
         OPTION_HIDE_USERNAME_ON_CARD,
         OPTION_HIDE_HELP_CARDS,
         OPTION_DEFAULT_CONNECT_PASSWORD,
-        OPTION_HIDE_TRAY,
         OPTION_ONE_WAY_CLIPBOARD_REDIRECTION,
         OPTION_ALLOW_LOGON_SCREEN_PASSWORD,
         OPTION_ALLOW_DEEP_LINK_PASSWORD,
