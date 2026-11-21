@@ -91,6 +91,15 @@ pub fn hide_cm() -> bool {
         && crate::config::option2bool("allow-hide-cm", &Config::get_option("allow-hide-cm"))
 }
 
+/// The tray icon may be hidden only under the same conditions as the connection manager:
+/// password approval with a permanent password.  Keep this policy in `hbb_common` so the
+/// tray process and the settings UI cannot disagree about what the option means.
+pub fn hide_tray() -> bool {
+    approve_mode() == ApproveMode::Password
+        && verification_method() == VerificationMethod::OnlyUsePermanentPassword
+        && crate::config::option2bool("hide-tray", &Config::get_option("hide-tray"))
+}
+
 const VERSION_LEN: usize = 2;
 const FORMAT_V1: u8 = 1;
 
